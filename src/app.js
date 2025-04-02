@@ -2,11 +2,22 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const apiRoutes = require('./routes/api');
+
 const app = express();
 
-// Configuration CORS optimisée pour Vercel
+// Déterminer l'origine en fonction de l'environnement
+const getOrigin = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.CLIENT_URL || 'https://heyes-client.vercel.app';
+  }
+  // En développement, autoriser localhost avec différents ports possibles
+  return ['http://localhost:3000', 'http://127.0.0.1:3000'];
+};
+
+
+// Configuration CORS optimisée pour les deux environnements
 const corsOptions = {
-  origin: process.env.CLIENT_URL || 'https://heyes-client.vercel.app',
+  origin: getOrigin(),
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
   credentials: true
@@ -34,11 +45,14 @@ app.use(helmet({
 
 app.use(express.json());
 
+app.use(express.urlencoded({ extended: true }));
+
 // Route racine (pour vérifier que l'API fonctionne)
 app.get('/', (req, res) => {
   res.status(200).json({ 
     message: "Heyes API is running", 
     status: "healthy",
+    environment: process.env.NODE_ENV || 'development',
     corsOrigin: corsOptions.origin // Pour déboguer
   });
 });
