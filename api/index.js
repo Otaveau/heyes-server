@@ -1,8 +1,11 @@
 // api/index.js
 const app = require('../app');
 
-// Exportez la fonction handler pour Vercel
 module.exports = (req, res) => {
-  // Ne pas permettre à Express de terminer la réponse
-  app(req, res);
+    // Réponse simple pour tester
+    res.status(200).json({
+        message: "Test API is working",
+        path: req.url,
+        method: req.method
+    });
 };
