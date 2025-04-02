@@ -1,21 +1,42 @@
+// api/index.js - Version avec Express mais sans app.js
+const express = require('express');
+const app = express();
+
+// Configuration de base
+app.use(express.json());
+
+// Middleware CORS basique
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://heyes-client.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
+
+// Route test
+app.get('/', (req, res) => {
+  res.json({
+    message: "Express API is working",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Route API test
+app.get('/api/test', (req, res) => {
+  res.json({ success: true, message: "API test route" });
+});
+
+// Route 404
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route non trouvée' });
+});
+
+// Exporter le handler
 module.exports = (req, res) => {
-    // Ajouter les headers CORS basiques
-    res.setHeader('Access-Control-Allow-Origin', 'https://heyes-client.vercel.app');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
-    // Gérer les requêtes OPTIONS
-    if (req.method === 'OPTIONS') {
-      res.status(200).end();
-      return;
-    }
-    
-    // Réponse simple pour toutes les autres requêtes
-    res.setHeader('Content-Type', 'application/json');
-    res.status(200).json({
-      message: "Simple API is working",
-      path: req.url,
-      method: req.method,
-      timestamp: new Date().toISOString()
-    });
-  };
+  app(req, res);
+};
