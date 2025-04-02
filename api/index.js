@@ -1,8 +1,9 @@
 const express = require('express');
 const app = express();
 
-// Configuration minimale
+// Configuration de nase
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Ajouter les headers CORS
 app.use((req, res, next) => {
@@ -19,7 +20,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// Route de test
+// Route racine
 app.get('/', (req, res) => {
     res.json({
         message: "Express API is working",
@@ -27,27 +28,21 @@ app.get('/', (req, res) => {
     });
 });
 
-// Exemple d'ajout de route d'enregistrement
-app.post('/api/auth/register', (req, res) => {
-    try {
-        // Logique d'enregistrement simplifiée pour tester
-        const { email, password } = req.body;
+// Importer le routeur principal
+const apiRoutes = require('../routes/api');
 
-        // Validation de base
-        if (!email || !password) {
-            return res.status(400).json({ success: false, message: 'Email et mot de passe requis' });
-        }
+// Utiliser le routeur principal avec le préfixe /api
+app.use('/api', apiRoutes);
 
-        // Réponse de test
-        res.status(201).json({
-            success: true,
-            message: 'Utilisateur enregistré avec succès',
-            user: { email, id: 'test-id' }
-        });
-    } catch (error) {
-        console.error('Erreur d\'enregistrement:', error);
-        res.status(500).json({ success: false, message: 'Erreur lors de l\'enregistrement' });
-    }
+// Gestionnaire d'erreurs
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Erreur serveur' });
+});
+
+// Route 404 pour les chemins non trouvés
+app.use((req, res) => {
+    res.status(404).json({ error: 'Route non trouvée' });
 });
 
 // Exporter un handler pour Vercel
