@@ -18,6 +18,15 @@ app.use(cors(corsOptions));
 // Gérer explicitement les requêtes OPTIONS (preflight)
 app.options('*', cors(corsOptions));
 
+app.options('*', (req, res) => {
+  // Définir les headers CORS explicitement
+  res.header('Access-Control-Allow-Origin', corsOptions.origin);
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+  // Répondre avec un status 200
+  res.sendStatus(200);
+});
+
 // Configurer Helmet avec contentSecurityPolicy désactivé pour éviter les conflits
 app.use(helmet({
   contentSecurityPolicy: false
