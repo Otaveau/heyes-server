@@ -1,28 +1,30 @@
 const { Pool } = require('pg');
 
-// Si DATABASE_URL est fourni, utilisez-le en priorité
-// Sinon, utilisez les variables individuelles
-const pool = process.env.DATABASE_URL 
-  ? new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: {
-        rejectUnauthorized: false
-      }
-    })
-  : new Pool({
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      database: process.env.DB_NAME,
-      ssl: {
-        rejectUnauthorized: false
-      }
-    });
+const sslConfig = process.env.NODE_ENV === 'production' ? {
+  rejectUnauthorized: true,
+  ca: process.env.DB_SSL_CA || null // À utiliser si Supabase le requiert
+} : false; // Désactivé en développement
 
-// Ajouter un gestionnaire d'erreurs pour le pool
-pool.on('error', (err) => {
-  console.error('Erreur de connexion à la base de données:', err);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: sslConfig,
+  connectionTimeoutMillis: 5000, // 5 secondes timeout
+  idleTimeoutMillis: 30000
 });
 
-module.exports = pool;
+// Test de connexion immédiat avec logging détaillé
+pool.query('SELECT 1+1 AS test')
+  .then(res => console.log('🟢 Connexion DB réussie. Test:', res.rows[0].test))
+  .catch(err => {
+    console.error('🔴 ERREUR DE CONNEXION:', {
+      message: err.message,
+      code: err.code,
+      stack: err.stack,
+      config: {
+        host: new URL(process.env.DATABASE_URL).hostname,
+        ssl: sslConfig
+      }
+    });
+    process.exit(1); // Force l'arrêt si la DB échoue
+  });
+
