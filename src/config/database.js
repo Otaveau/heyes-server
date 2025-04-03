@@ -1,25 +1,25 @@
 const { Pool } = require('pg');
-
-console.log('=== DEBUG START ===');
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('DATABASE_URL:', process.env.DATABASE_URL ? '***REDACTED***' : 'UNDEFINED');
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-  connectionTimeoutMillis: 2000
-});
-
-// Test immédiat
-pool.query('SELECT NOW()')
-  .then(res => console.log('DB TEST SUCCESS:', res.rows[0]))
-  .catch(err => {
-    console.error('DB TEST FAILED:', {
-      message: err.message,
-      code: err.code,
-      stack: err.stack
+const pool = process.env.DATABASE_URL 
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    })
+  : new Pool({
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      database: process.env.DB_NAME,
+      ssl: {
+        rejectUnauthorized: false
+      }
     });
-    process.exit(1); // Force l'échec visible
-  });
+
+// Ajouter un gestionnaire d'erreurs pour le pool
+pool.on('error', (err) => {
+  console.error('Erreur de connexion à la base de données:', err);
+});
 
 module.exports = pool;
