@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { generateToken } = require('../config/jwt');
-const pool = require('../config/database');
+const { pool } = require('../config/database');
 
 const register = async (req, res) => {
 
