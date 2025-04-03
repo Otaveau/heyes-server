@@ -3,6 +3,28 @@ const cors = require('cors');
 const helmet = require('helmet');
 const apiRoutes = require('./routes/api');
 
+const { testDatabaseConnection } = require('./database');
+
+// Route racine pour inclure un test de connexion
+app.get('/', async (req, res) => {
+  let dbStatus = 'unknown';
+  
+  try {
+    const dbConnected = await testDatabaseConnection();
+    dbStatus = dbConnected ? 'connected' : 'connection failed';
+  } catch (error) {
+    dbStatus = `error: ${error.message}`;
+  }
+  
+  res.status(200).json({ 
+    message: "Heyes API is running", 
+    status: "healthy",
+    environment: process.env.NODE_ENV || 'development',
+    corsOrigin: corsOptions.origin,
+    database: dbStatus
+  });
+});
+
 const app = express();
 
 // Déterminer l'origine en fonction de l'environnement
