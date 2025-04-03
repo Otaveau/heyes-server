@@ -5,6 +5,8 @@ const apiRoutes = require('./routes/api');
 
 const { testDatabaseConnection } = require('./config/database');
 
+const app = express();
+
 // Route racine pour inclure un test de connexion
 app.get('/', async (req, res) => {
   let dbStatus = 'unknown';
@@ -24,8 +26,6 @@ app.get('/', async (req, res) => {
     database: dbStatus
   });
 });
-
-const app = express();
 
 // Déterminer l'origine en fonction de l'environnement
 const getOrigin = () => {
