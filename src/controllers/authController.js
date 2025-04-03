@@ -3,6 +3,9 @@ const { generateToken } = require('../config/jwt');
 const pool = require('../config/database');
 
 const register = async (req, res) => {
+
+  console.log('Début de la fonction register');
+
   const { name, password } = req.body;
 
   // Validation des entrées
@@ -15,6 +18,9 @@ const register = async (req, res) => {
   }
 
   try {
+
+    console.log('Données reçues:', req.body);
+
     // Vérification si le nom d'utilisateur existe déjà
     const existingUser = await pool.query('SELECT * FROM users WHERE name = $1', [name]);
     
@@ -30,6 +36,8 @@ const register = async (req, res) => {
     );
 
     const newUser = result.rows[0];
+
+    console.log('Inscription réussie');
     
     res.status(201).json({
       message: 'Inscription réussie',
@@ -39,8 +47,11 @@ const register = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Erreur lors de l\'inscription' });
+    console.error('Erreur d\'inscription:', error);
+    res.status(500).json({ 
+      error: 'Erreur lors de l\'inscription',
+      message: error.message 
+    });
   }
 };
 

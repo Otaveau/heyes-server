@@ -4,6 +4,23 @@ const authController = require('../controllers/authController');
 const authMiddleware = require('../middleware/authMiddleware');
 const pool = require('../config/database');
 
+// route de test temporaire
+router.get('/test-db', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT NOW()');
+    res.json({
+      message: 'Connexion à la base de données réussie',
+      timestamp: result.rows[0].now
+    });
+  } catch (error) {
+    console.error('Erreur de connexion à la DB:', error);
+    res.status(500).json({
+      error: 'Erreur de connexion à la base de données',
+      details: error.message
+    });
+  }
+});
+
 // Routes publiques
 router.post('/register', authController.register);
 router.post('/login', authController.login);
