@@ -44,7 +44,7 @@ router.post('/logout', authMiddleware, (req, res) => {
 router.get('/check-username/:username', async (req, res) => {
   try {
     const { username } = req.params;
-    const result = await pool.query('SELECT EXISTS(SELECT 1 FROM users WHERE name = $1)', [username]);
+    const result = await pool.query('SELECT EXISTS(SELECT 1 FROM heyes_schema.users WHERE name = $1)', [username]);
     res.json({ 
       exists: result.rows[0].exists,
       available: !result.rows[0].exists 
@@ -59,7 +59,7 @@ router.get('/check-username/:username', async (req, res) => {
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT user_id, name FROM users WHERE user_id = $1',
+      'SELECT user_id, name FROM heyes_schema.users WHERE user_id = $1',
       [req.user.id]
     );
 

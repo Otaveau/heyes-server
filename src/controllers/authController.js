@@ -22,7 +22,7 @@ const register = async (req, res) => {
     console.log('Données reçues:', req.body);
 
     // Vérification si le nom d'utilisateur existe déjà
-    const existingUser = await pool.query('SELECT * FROM users WHERE name = $1', [name]);
+    const existingUser = await pool.query('SELECT * FROM heyes_schema.users WHERE name = $1', [name]);
     
     if (existingUser.rows.length > 0) {
       return res.status(400).json({ error: 'Ce nom d\'utilisateur est déjà utilisé' });
@@ -31,7 +31,7 @@ const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const result = await pool.query(
-      'INSERT INTO users (name, password) VALUES ($1, $2) RETURNING user_id, name',
+      'INSERT INTO heyes_schema.users (name, password) VALUES ($1, $2) RETURNING user_id, name',
       [name, hashedPassword]
     );
 
@@ -64,7 +64,7 @@ const login = async (req, res) => {
   }
 
   try {
-    const result = await pool.query('SELECT * FROM users WHERE name = $1', [name]);
+    const result = await pool.query('SELECT * FROM heyes_schema.users WHERE name = $1', [name]);
 
     const user = result.rows[0];
     if (!user) {
