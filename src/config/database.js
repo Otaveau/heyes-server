@@ -1,30 +1,25 @@
 const { Pool } = require('pg');
 
-const sslConfig = process.env.NODE_ENV === 'production' ? {
-  rejectUnauthorized: true,
-  ca: process.env.DB_SSL_CA || null // À utiliser si Supabase le requiert
-} : false; // Désactivé en développement
+console.log('=== DEBUG START ===');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DATABASE_URL:', process.env.DATABASE_URL ? '***REDACTED***' : 'UNDEFINED');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: sslConfig,
-  connectionTimeoutMillis: 5000, // 5 secondes timeout
-  idleTimeoutMillis: 30000
+  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 2000
 });
 
-// Test de connexion immédiat avec logging détaillé
-pool.query('SELECT 1+1 AS test')
-  .then(res => console.log('🟢 Connexion DB réussie. Test:', res.rows[0].test))
+// Test immédiat
+pool.query('SELECT NOW()')
+  .then(res => console.log('DB TEST SUCCESS:', res.rows[0]))
   .catch(err => {
-    console.error('🔴 ERREUR DE CONNEXION:', {
+    console.error('DB TEST FAILED:', {
       message: err.message,
       code: err.code,
-      stack: err.stack,
-      config: {
-        host: new URL(process.env.DATABASE_URL).hostname,
-        ssl: sslConfig
-      }
+      stack: err.stack
     });
-    process.exit(1); // Force l'arrêt si la DB échoue
+    process.exit(1); // Force l'échec visible
   });
 
+module.exports = pool;
