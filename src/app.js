@@ -3,7 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const apiRoutes = require('./routes/api');
 
-const { testDatabaseConnection } = require('./database');
+const { testDatabaseConnection } = require('./config/database');
 
 // Route racine pour inclure un test de connexion
 app.get('/', async (req, res) => {
