@@ -1,27 +1,55 @@
 const { Pool } = require('pg');
 
-// Configuration du pool de connexion avec des valeurs par défaut
-const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  database: process.env.DB_NAME || 'heyes',
-  ssl: process.env.NODE_ENV === 'production' ? {
-    rejectUnauthorized: false,
-    sslmode: 'require'
-  } : false
-});
+// Détermine la configuration du pool en fonction de l'environnement
+let poolConfig;
+let dbInfo;
 
-// Logging des paramètres de connexion (sans exposer le mot de passe)
-console.log('Paramètres de connexion à la DB:', {
-  user: process.env.DB_USER || 'postgres',
-  passwordProvided: !!process.env.DB_PASSWORD,
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || '5432',
-  database: process.env.DB_NAME || 'heyes',
-  sslEnabled: process.env.NODE_ENV === 'production'
-});
+if (process.env.DATABASE_URL) {
+  // Configuration pour Vercel ou tout environnement utilisant une URL de connexion
+  poolConfig = {
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false,
+      sslmode: 'require'
+    }
+  };
+  
+  dbInfo = {
+    type: 'URL connection',
+    url: process.env.DATABASE_URL ? 'provided (hidden)' : 'missing',
+    sslEnabled: true
+  };
+} else {
+  // Configuration pour développement local avec paramètres individuels
+  poolConfig = {
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432', 10),
+    database: process.env.DB_NAME || 'heyes',
+    ssl: process.env.NODE_ENV === 'production' ? {
+      rejectUnauthorized: false,
+      sslmode: 'require'
+    } : false
+  };
+  
+  dbInfo = {
+    type: 'Individual parameters',
+    user: process.env.DB_USER || 'postgres',
+    passwordProvided: !!process.env.DB_PASSWORD,
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || '5432',
+    database: process.env.DB_NAME || 'heyes',
+    sslEnabled: process.env.NODE_ENV === 'production'
+  };
+}
+
+// Créer le pool avec la configuration appropriée
+const pool = new Pool(poolConfig);
+
+// Logging des paramètres de connexion
+console.log('Paramètres de connexion à la DB:', dbInfo);
+console.log('Environnement:', process.env.NODE_ENV || 'development');
 
 // Test de connexion à la base de données
 const testDatabaseConnection = async () => {
@@ -48,10 +76,26 @@ const testDatabaseConnection = async () => {
       
       if (!schemaExists || !tableExists) {
         console.log('⚠️ Attention: Le schéma ou la table n\'existe pas. Création automatique recommandée.');
-        // Ici vous pourriez ajouter un code pour créer automatiquement la structure
+        // Création automatique du schéma et de la table si nécessaire
+        if (!schemaExists) {
+          await pool.query('CREATE SCHEMA IF NOT EXISTS heyes_schema');
+          console.log('Schéma heyes_schema créé avec succès');
+        }
+        
+        if (!tableExists) {
+          await pool.query(`
+            CREATE TABLE IF NOT EXISTS heyes_schema.users (
+              user_id SERIAL PRIMARY KEY,
+              name VARCHAR(255) NOT NULL UNIQUE,
+              password VARCHAR(255) NOT NULL,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+          `);
+          console.log('Table users créée avec succès');
+        }
       }
     } catch (err) {
-      console.error('Erreur lors de la vérification du schéma/table:', err);
+      console.error('Erreur lors de la vérification ou création du schéma/table:', err);
     }
     
     return true;
