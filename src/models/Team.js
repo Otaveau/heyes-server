@@ -1,4 +1,5 @@
-const pool = require('../config/database');
+const db = require('../config/database');
+const pool = db.pool;
 
 class Team {
   static async findById(id, userId) {

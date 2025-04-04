@@ -1,4 +1,5 @@
-const pool = require('../config/database');
+const db = require('../config/database');
+const pool = db.pool;
 
 class Owner {
     static async findById(id, userId) {
