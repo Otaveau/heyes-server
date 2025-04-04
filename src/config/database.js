@@ -47,6 +47,10 @@ if (process.env.DATABASE_URL) {
 // Créer le pool avec la configuration appropriée
 const pool = new Pool(poolConfig);
 
+pool.on('connect', async (client) => {
+  await client.query('SET search_path TO heyes_schema, public');
+});
+
 // Logging des paramètres de connexion
 console.log('Paramètres de connexion à la DB:', dbInfo);
 console.log('Environnement:', process.env.NODE_ENV || 'development');
@@ -84,7 +88,7 @@ const testDatabaseConnection = async () => {
         
         if (!tableExists) {
           await pool.query(`
-            CREATE TABLE IF NOT EXISTS heyes_schema.users (
+            CREATE TABLE IF NOT EXISTS users (
               user_id SERIAL PRIMARY KEY,
               name VARCHAR(255) NOT NULL UNIQUE,
               password VARCHAR(255) NOT NULL,
