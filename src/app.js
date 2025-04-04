@@ -7,7 +7,6 @@ const { testDatabaseConnection } = require('./config/database');
 
 const app = express();
 
-// Route racine pour inclure un test de connexion
 app.get('/', async (req, res) => {
   let dbStatus = 'unknown';
   
@@ -26,6 +25,7 @@ app.get('/', async (req, res) => {
     database: dbStatus
   });
 });
+
 
 // Déterminer l'origine en fonction de l'environnement
 const getOrigin = () => {
@@ -68,16 +68,6 @@ app.use(helmet({
 app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
-
-// Route racine (pour vérifier que l'API fonctionne)
-app.get('/', (req, res) => {
-  res.status(200).json({ 
-    message: "Heyes API is running", 
-    status: "healthy",
-    environment: process.env.NODE_ENV || 'development',
-    corsOrigin: corsOptions.origin // Pour déboguer
-  });
-});
 
 // Routes API
 app.use('/api', apiRoutes);
