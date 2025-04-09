@@ -19,19 +19,19 @@ class Team {
   }
 
   static async create(data, userId) {
-    const { name } = data;
+    const { name, color } = data;
     const result = await pool.query(
-      'INSERT INTO teams (name, user_id) VALUES ($1, $2) RETURNING *',
-      [name, userId]
+      'INSERT INTO teams (name, color, user_id) VALUES ($1, $2, $3) RETURNING *',
+      [name, color, userId]
     );
     return result.rows[0];
   }
 
   static async update(id, data, userId) {
-    const { name } = data;
+    const { name, color } = data;
     const result = await pool.query(
-      'UPDATE teams SET name = $1 WHERE team_id = $2 AND user_id = $3 RETURNING *',
-      [name, id, userId]
+      'UPDATE teams SET name = $1, color = $2 WHERE team_id = $3 AND user_id = $4 RETURNING *',
+      [name, color, id, userId]
     );
     return result.rows[0];
   }
