@@ -31,6 +31,7 @@ const createTeam = async (req, res) => {
 
 const updateTeam = async (req, res) => {
   try {
+    console.log('req.body', req.body);
     const team = await Team.update(req.params.id, req.body, req.user.id);
     if (!team) return res.status(404).json({ error: 'Team not found' });
     res.json(team);
