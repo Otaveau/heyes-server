@@ -20,18 +20,31 @@ class Team {
 
   static async create(data, userId) {
     const { name, color } = data;
+    // Valider le format de la couleur (code hexadécimal)
+    const validColor = color && /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color) 
+      ? color 
+      : null;
+      
     const result = await pool.query(
       'INSERT INTO teams (name, color, user_id) VALUES ($1, $2, $3) RETURNING *',
-      [name, color, userId]
+      [name, validColor, userId]
     );
     return result.rows[0];
   }
 
   static async update(id, data, userId) {
+
+    console.log('data :', data);
     const { name, color } = data;
+    console.log('color :', color);
+    // Valider le format de la couleur (code hexadécimal)
+    const validColor = color && /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color) 
+      ? color 
+      : null;
+      
     const result = await pool.query(
       'UPDATE teams SET name = $1, color = $2 WHERE team_id = $3 AND user_id = $4 RETURNING *',
-      [name, color, id, userId]
+      [name, validColor, id, userId]
     );
     return result.rows[0];
   }
