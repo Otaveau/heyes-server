@@ -4,19 +4,23 @@ const pool = db.pool;
 class Task {
   static async findById(id, userId) {
     const result = await pool.query(`
-        SELECT t.*, o.name as owner_name, s.status_type, team.name as team_name
+        SELECT t.task_id AS id, t.title, t.description, t.start_date, t.end_date, 
+               t.owner_id, t.user_id, t.status_id, t.priority, t.created_at, t.updated_at,
+               o.name as owner_name, s.status_type, team.name as team_name
         FROM tasks t
         LEFT JOIN owners o ON t.owner_id = o.owner_id
         LEFT JOIN status s ON t.status_id = s.status_id
         LEFT JOIN teams team ON o.team_id = team.team_id
-        WHERE t.id = $1 AND t.user_id = $2
+        WHERE t.task_id = $1 AND t.user_id = $2
       `, [id, userId]);
     return result.rows[0];
   }
 
   static async findAll(userId) {
     const result = await pool.query(`
-        SELECT t.*, o.name as owner_name, s.status_type, team.name as team_name
+        SELECT t.task_id AS id, t.title, t.description, t.start_date, t.end_date, 
+               t.owner_id, t.user_id, t.status_id, t.priority, t.created_at, t.updated_at,
+               o.name as owner_name, s.status_type, team.name as team_name
         FROM tasks t
         LEFT JOIN owners o ON t.owner_id = o.owner_id
         LEFT JOIN status s ON t.status_id = s.status_id
@@ -40,7 +44,7 @@ class Task {
             status_id, 
             user_id
         ) VALUES ($1, $2::date, $3::date, $4, $5, $6, $7) 
-        RETURNING *`,
+        RETURNING task_id AS id, *`,
       [title, start_date, end_date, description, owner_id, status_id, userId]
     );
     return result.rows[0];
@@ -62,8 +66,8 @@ class Task {
           owner_id = $4, 
           status_id = $5, 
           description = $6 
-      WHERE id = $7 AND user_id = $8 
-      RETURNING *`,
+      WHERE task_id = $7 AND user_id = $8 
+      RETURNING task_id AS id, *`,
       [title, start_date, end_date, owner_id, status_id, description, id, user_id]
     );
     return result.rows[0];
@@ -87,7 +91,7 @@ class Task {
 
   static async delete(id, userId) {
     const result = await pool.query(
-      'DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING *',
+      'DELETE FROM tasks WHERE task_id = $1 AND user_id = $2 RETURNING *',
       [id, userId]
     );
 
@@ -95,6 +99,14 @@ class Task {
       throw new Error('Task not found or you do not have permission to delete');
     }
 
+    return result.rows[0];
+  }
+
+  static async updateStatus(id, statusId, userId) {
+    const result = await pool.query(
+      'UPDATE tasks SET status_id = $1, updated_at = CURRENT_TIMESTAMP WHERE task_id = $2 AND user_id = $3 RETURNING task_id AS id, *',
+      [statusId, id, userId]
+    );
     return result.rows[0];
   }
 }
